@@ -2290,23 +2290,6 @@ export function DocumentDetailPage() {
         </Card>
       )}
 
-      {workflowSteps.length > 0 && (
-        <Card
-          size="small"
-          style={{
-            marginBottom: 16,
-            borderRadius: 12,
-          }}
-          title="Progresso do Fluxo"
-        >
-          <Steps
-            size="small"
-            current={currentWorkflowStepIndex ?? 0}
-            items={stepsItems}
-          />
-        </Card>
-      )}
-
       <Tabs
         items={[
           {
