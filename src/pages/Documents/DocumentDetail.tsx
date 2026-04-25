@@ -203,10 +203,13 @@ type RevisionHistoryItem = {
   revision: string
   status: string
   title?: string
-  createdAt?: string
-  updatedAt?: string
-  createdByName?: string
+  createdAt?: string | null
+  updatedAt?: string | null
+  createdByName?: string | null
   responsibleName?: string | null
+  currentStepName?: string | null
+  currentAssignedUserName?: string | null
+  isCurrentRevision?: boolean
 }
 
 type ActionConfirmModalProps = {
@@ -371,7 +374,14 @@ function isRevisionCurrent(
   item: RevisionHistoryItem,
   currentInstanceId?: string | null,
 ) {
-  return String(item.id) === String(currentInstanceId ?? '')
+  const itemId = String(item.id ?? '').trim()
+  const currentId = String(currentInstanceId ?? '').trim()
+
+  if (currentId && itemId) {
+    return itemId === currentId
+  }
+
+  return item.isCurrentRevision === true
 }
 
 function getNormalizedWorkflowElementKind(item: any): string {
@@ -948,34 +958,60 @@ function RevisionHistoryPopover({
     return [...documents].sort((a, b) => {
       const revA = Number(a.revision ?? -1)
       const revB = Number(b.revision ?? -1)
-      return revB - revA
+
+      if (!Number.isNaN(revA) && !Number.isNaN(revB)) {
+        return revB - revA
+      }
+
+      const dateA = new Date(a.updatedAt ?? a.createdAt ?? '').getTime()
+      const dateB = new Date(b.updatedAt ?? b.createdAt ?? '').getTime()
+
+      return dateB - dateA
     })
   }, [documents])
 
   return (
-    <div style={{ width: 320 }}>
-      <div style={{ marginBottom: 12 }}>
+    <div
+      style={{
+        width: 340,
+        maxHeight: 520,
+        overflowY: 'auto',
+        paddingRight: 2,
+      }}
+    >
+      <div style={{ marginBottom: 14 }}>
         <Space>
-          <HistoryOutlined />
-          <Text strong>Histórico de revisões</Text>
+          <HistoryOutlined style={{ color: '#334155' }} />
+          <Text strong style={{ color: '#1f2937' }}>
+            Histórico de revisões
+          </Text>
         </Space>
       </div>
 
       <Space direction="vertical" size={10} style={{ width: '100%' }}>
         {orderedDocuments.map((item) => {
           const isCurrent = isRevisionCurrent(item, currentDocumentId)
+
           const statusLabel = isCurrent ? 'Atual' : 'Obsoleta'
           const displayDate = item.updatedAt ?? item.createdAt ?? null
 
-          const statusTagColor = isCurrent ? 'blue' : 'gold'
-          const cardBorderColor = isCurrent ? '#91caff' : '#ffe58f'
-          const cardBackgroundColor = isCurrent ? '#f0f7ff' : '#fffbe6'
-          const badgeBackgroundColor = isCurrent ? '#1677ff' : '#faad14'
+          const revisionLabel = String(item.revision ?? '00').padStart(2, '0')
+
+          const cardBorderColor = isCurrent ? '#bfdbfe' : '#fde68a'
+          const cardBackgroundColor = isCurrent ? '#eff6ff' : '#fffbeb'
+          const badgeBackgroundColor = isCurrent ? '#3b82f6' : '#f59e0b'
+          const badgeTextColor = '#ffffff'
+          const statusTextColor = isCurrent ? '#2563eb' : '#d97706'
+          const obsoleteIconColor = isCurrent ? '#94a3b8' : '#d97706'
 
           return (
             <div
               key={item.id}
-              onClick={() => onOpenDocument?.(item.id)}
+              onClick={() => {
+                if (onOpenDocument && item.id) {
+                  onOpenDocument(item.id)
+                }
+              }}
               style={{
                 border: `1px solid ${cardBorderColor}`,
                 background: cardBackgroundColor,
@@ -983,6 +1019,9 @@ function RevisionHistoryPopover({
                 padding: 12,
                 cursor: onOpenDocument ? 'pointer' : 'default',
                 transition: 'all 0.2s ease',
+                boxShadow: isCurrent
+                  ? '0 4px 12px rgba(59, 130, 246, 0.12)'
+                  : '0 2px 8px rgba(15, 23, 42, 0.04)',
               }}
             >
               <Space
@@ -992,33 +1031,57 @@ function RevisionHistoryPopover({
                   justifyContent: 'space-between',
                 }}
               >
-                <Space align="start">
+                <Space align="start" size={10}>
                   <div
                     style={{
-                      minWidth: 34,
-                      height: 34,
-                      borderRadius: 8,
+                      minWidth: 36,
+                      height: 36,
+                      borderRadius: 9,
                       background: badgeBackgroundColor,
-                      color: '#fff',
+                      color: badgeTextColor,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontWeight: 700,
-                      fontSize: 12,
+                      fontWeight: 800,
+                      fontSize: 13,
+                      lineHeight: 1,
                     }}
                   >
-                    {String(item.revision ?? '').padStart(2, '0')}
+                    {revisionLabel}
                   </div>
 
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <Space wrap size={6}>
-                      <Text strong>{item.code}</Text>
-                      <Tag color={statusTagColor}>{statusLabel}</Tag>
+                      <Text
+                        strong
+                        style={{
+                          color: '#0f172a',
+                          fontSize: 13,
+                        }}
+                      >
+                        {item.code}
+                      </Text>
+
+                      <Text
+                        strong={isCurrent}
+                        style={{
+                          color: statusTextColor,
+                          fontSize: 11,
+                        }}
+                      >
+                        {statusLabel}
+                      </Text>
                     </Space>
 
                     {displayDate && (
                       <div style={{ marginTop: 4 }}>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
+                        <Text
+                          type="secondary"
+                          style={{
+                            fontSize: 12,
+                            color: '#64748b',
+                          }}
+                        >
                           {safeFormatDateTime(displayDate)}
                           {item.createdByName ? ` · ${item.createdByName}` : ''}
                         </Text>
@@ -1028,7 +1091,13 @@ function RevisionHistoryPopover({
                 </Space>
 
                 {!isCurrent && (
-                  <BranchesOutlined style={{ color: '#d48806', marginTop: 4 }} />
+                  <BranchesOutlined
+                    style={{
+                      color: obsoleteIconColor,
+                      marginTop: 6,
+                      fontSize: 14,
+                    }}
+                  />
                 )}
               </Space>
             </div>
@@ -1268,6 +1337,24 @@ export function DocumentDetailPage() {
     [doc],
   )
 
+  const isViewingObsoleteRevision = useMemo(() => {
+    if (!doc) return false
+
+    const currentInstanceId = String(
+      doc.currentInstanceId ??
+      doc.current_instance_id ??
+      '',
+    ).trim()
+
+    const currentDocumentId = String(doc.id ?? '').trim()
+
+    if (currentInstanceId && currentDocumentId) {
+      return currentInstanceId !== currentDocumentId
+    }
+
+    return doc.isCurrentRevision === false
+  }, [doc])
+
   const workflowSteps: WorkflowStepEnriched[] = useMemo(() => {
     const wf = workflow as any
     console.log('[DEBUG workflow.elements]', wf?.elements?.map((e: any) => ({
@@ -1311,41 +1398,9 @@ export function DocumentDetailPage() {
     return []
   }, [doc?.workflowSteps, workflow])
 
-  const revisionHistoryDocuments = useMemo<RevisionHistoryItem[]>(() => {
-    const currentItem: RevisionHistoryItem = {
-      id: String(doc?.id ?? ''),
-      code: doc?.code ?? '-',
-      revision: doc?.revision ?? '00',
-      status: doc?.status ?? '',
-      title: doc?.title ?? '',
-      createdAt: doc?.createdAt,
-      updatedAt: doc?.updatedAt,
-      createdByName: doc?.createdByName ?? null,
-      responsibleName: doc?.responsibleName ?? null,
-    }
 
-    const historyItems: RevisionHistoryItem[] = Array.isArray(doc?.revisionHistory)
-      ? doc.revisionHistory.map((item: any) => ({
-        id: String(item.id ?? item.documentId ?? item._id ?? ''),
-        code: item.code ?? doc?.code ?? '-',
-        revision: item.revision ?? '00',
-        status: item.status ?? '',
-        title: item.title ?? '',
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-        createdByName: item.createdByName ?? item.createdByUserName ?? null,
-        responsibleName: item.responsibleName ?? null,
-      }))
-      : []
 
-    return [currentItem, ...historyItems].filter(
-      (item, index, array) =>
-        item.id &&
-        array.findIndex((candidate) => String(candidate.id) === String(item.id)) === index,
-    )
-  }, [doc])
 
-  const revisionCount = revisionHistoryDocuments.length
 
   const currentWorkflowStepIndex = useMemo(() => {
     const currentElementId = String(doc?.currentElementId ?? '').trim()
@@ -1386,6 +1441,137 @@ export function DocumentDetailPage() {
 
     return workflowSteps.length > 0 ? workflowSteps[0] : null
   }, [workflowSteps, currentWorkflowStepIndex])
+
+
+
+  const revisionHistoryDocuments = useMemo<RevisionHistoryItem[]>(() => {
+    const resolvedStepName =
+      doc?.currentStepName ??
+      currentStep?.name ??
+      null
+
+    const resolvedAssignedUser =
+      doc?.currentAssignedUserName ??
+      doc?.responsibleName ??
+      null
+
+    const currentItem: RevisionHistoryItem = {
+      id: String(doc?.id ?? ''),
+      code: doc?.code ?? '-',
+      revision: doc?.revision ?? '00',
+      status: doc?.status ?? '',
+      title: doc?.title ?? '',
+      createdAt: doc?.createdAt ?? null,
+      updatedAt: doc?.updatedAt ?? null,
+      createdByName: doc?.createdByName ?? null,
+      responsibleName: doc?.responsibleName ?? null,
+      currentStepName: resolvedStepName,
+      currentAssignedUserName: resolvedAssignedUser,
+
+      /**
+       * IMPORTANTE:
+       * Não pode ser sempre true.
+       * Quando você abre uma revisão obsoleta, a API retorna:
+       * isCurrentRevision: false
+       */
+      isCurrentRevision: Boolean(doc?.isCurrentRevision),
+    }
+
+    const historyItems: RevisionHistoryItem[] = Array.isArray(doc?.revisionHistory)
+      ? doc.revisionHistory.map((item: any) => {
+        const itemId = String(
+          item.id ??
+          item.documentInstanceId ??
+          item.document_instance_id ??
+          item.documentId ??
+          item.document_id ??
+          item._id ??
+          '',
+        )
+
+        const itemCurrentStepName =
+          item.currentStepName ??
+          item.current_step_name ??
+          item.stepName ??
+          item.step_name ??
+          null
+
+        const itemCurrentAssignedUserName =
+          item.currentAssignedUserName ??
+          item.current_assigned_user_name ??
+          item.responsibleName ??
+          item.responsible_name ??
+          item.assignedUserName ??
+          item.assigned_user_name ??
+          null
+
+        return {
+          id: itemId,
+          code: item.code ?? doc?.code ?? '-',
+          revision: item.revision ?? '00',
+          status: item.status ?? '',
+          title: item.title ?? '',
+          createdAt: item.createdAt ?? item.created_at ?? null,
+          updatedAt: item.updatedAt ?? item.updated_at ?? null,
+          createdByName:
+            item.createdByName ??
+            item.created_by_name ??
+            item.createdByUserName ??
+            item.created_by_user_name ??
+            null,
+          responsibleName:
+            item.responsibleName ??
+            item.responsible_name ??
+            null,
+          currentStepName: itemCurrentStepName,
+          currentAssignedUserName: itemCurrentAssignedUserName,
+          isCurrentRevision: Boolean(
+            item.isCurrentRevision ??
+            item.is_current_revision ??
+            false,
+          ),
+        }
+      })
+      : []
+
+    const mergedItems = [currentItem, ...historyItems].filter(
+      (item, index, array) =>
+        item.id &&
+        array.findIndex(
+          (candidate) => String(candidate.id) === String(item.id),
+        ) === index,
+    )
+
+    const currentInstanceId = String(
+      doc?.currentInstanceId ??
+      doc?.current_instance_id ??
+      '',
+    ).trim()
+
+    /**
+     * Garante que somente uma revisão fique como Atual.
+     * Prioridade:
+     * 1. id igual ao currentInstanceId
+     * 2. se não houver currentInstanceId, usa isCurrentRevision vindo da API
+     */
+    return mergedItems.map((item) => {
+      const itemId = String(item.id ?? '').trim()
+
+      if (currentInstanceId) {
+        return {
+          ...item,
+          isCurrentRevision: itemId === currentInstanceId,
+        }
+      }
+
+      return {
+        ...item,
+        isCurrentRevision: item.isCurrentRevision === true,
+      }
+    })
+  }, [doc, currentStep])
+
+  const revisionCount = revisionHistoryDocuments.length
 
   const stepPendingTask = useMemo(() => {
     const pending = tasks.filter(
@@ -1968,7 +2154,14 @@ export function DocumentDetailPage() {
               {doc.code ?? doc.title ?? 'Documento'}
             </Title>
 
-            <Space wrap>
+            <Space
+              wrap
+              size={[8, 8]}
+              style={{
+                marginTop: 6,
+                display: 'flex',
+              }}
+            >
               <Text type="secondary">{doc.title}</Text>
               <StatusBadge status={doc.status} />
               <Tag color="blue">{normalizeRevisionLabel(doc.revision)}</Tag>
@@ -1976,6 +2169,7 @@ export function DocumentDetailPage() {
               {revisionCount > 0 && (
                 <Popover
                   trigger="click"
+                  destroyTooltipOnHide
                   content={
                     <RevisionHistoryPopover
                       currentDocumentId={doc.currentInstanceId ?? doc.id}
@@ -1984,15 +2178,117 @@ export function DocumentDetailPage() {
                     />
                   }
                 >
-                  <Button size="small" icon={<HistoryOutlined />}>
-                    Revisões ({revisionCount})
+                  <Button
+                    size="small"
+                    icon={<HistoryOutlined />}
+                    style={{
+                      borderRadius: 8,
+                      background: '#eff6ff',
+                      borderColor: '#bfdbfe',
+                      color: '#2563eb',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {normalizeRevisionLabel(doc.revision)}
                   </Button>
                 </Popover>
               )}
             </Space>
+
+            <Space
+              direction="vertical"
+              size={6}
+              style={{
+                marginTop: 8,
+                display: 'flex',
+                alignItems: 'flex-start',
+              }}
+            >
+              <Tag
+                icon={<ClockCircleOutlined />}
+                color="processing"
+                style={{
+                  borderRadius: 8,
+                  padding: '4px 10px',
+                  fontSize: 12,
+                  marginInlineEnd: 0,
+                }}
+              >
+                Atividade atual: {currentStepName}
+              </Tag>
+
+              <Tag
+                icon={<UserOutlined />}
+                color="blue"
+                style={{
+                  borderRadius: 8,
+                  padding: '4px 10px',
+                  fontSize: 12,
+                  marginInlineEnd: 0,
+                }}
+              >
+                Responsável atual:{' '}
+                {currentResponsibleNames.length > 0
+                  ? currentResponsibleNames.join(', ')
+                  : '-'}
+              </Tag>
+            </Space>
           </div>
         </Space>
       </Space>
+
+      {isViewingObsoleteRevision && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{
+            marginBottom: 16,
+            borderRadius: 12,
+            borderColor: '#fde68a',
+            background: '#fffbeb',
+          }}
+          title="Você está visualizando uma revisão obsoleta"
+          description={
+            <Space direction="vertical" size={4}>
+              <Text>
+                Esta não é a revisão atual do documento. As ações, tarefas e metadados podem estar disponíveis apenas na revisão vigente.
+              </Text>
+
+              {doc.currentInstanceId && String(doc.currentInstanceId) !== String(doc.id) && (
+                <Button
+                  size="small"
+                  type="link"
+                  style={{
+                    padding: 0,
+                    color: '#d97706',
+                    fontWeight: 600,
+                  }}
+                  onClick={() => navigate(`/documents/${doc.currentInstanceId}`)}
+                >
+                  Abrir revisão atual
+                </Button>
+              )}
+            </Space>
+          }
+        />
+      )}
+
+      {workflowSteps.length > 0 && (
+        <Card
+          size="small"
+          style={{
+            marginBottom: 16,
+            borderRadius: 12,
+          }}
+          title="Progresso do Fluxo"
+        >
+          <Steps
+            size="small"
+            current={currentWorkflowStepIndex ?? 0}
+            items={stepsItems}
+          />
+        </Card>
+      )}
 
       {workflowSteps.length > 0 && (
         <Card
