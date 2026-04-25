@@ -1,0 +1,577 @@
+.users-page {
+  padding: 24px;
+  background: #f3f6fb;
+  min-height: 100%;
+}
+
+.users-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.users-page__title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.users-page__title {
+  margin: 0 !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em;
+}
+
+.users-page__subtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.users-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.users-page__new-btn.ant-btn-primary {
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.22);
+  font-weight: 600;
+}
+
+.users-page__new-btn.ant-btn-primary:hover,
+.users-page__new-btn.ant-btn-primary:focus {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.users-page__table-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.07);
+  overflow: hidden;
+}
+
+.users-page__table-card .ant-table-wrapper {
+  padding: 6px;
+}
+
+.users-page__table-card .ant-table {
+  background: transparent;
+}
+
+.users-page__table-card .ant-table-thead > tr > th {
+  background: #f8fafc !important;
+  color: #334155 !important;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e5e7eb !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+}
+
+.users-page__table-card .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #eef2f7 !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  color: #0f172a;
+  vertical-align: middle;
+}
+
+.users-page__table-card .ant-table-tbody > tr:hover > td {
+  background: #f8fbff !important;
+}
+
+.users-page__table-card .ant-table-tbody > tr:last-child > td {
+  border-bottom: none !important;
+}
+
+.users-page__user-cell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 220px;
+}
+
+.users-page__user-avatar.ant-avatar {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #e0ecff 0%, #c7dcff 100%);
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+}
+
+.users-page__user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.users-page__user-name {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.users-page__user-email {
+  color: #64748b;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.users-page__muted {
+  color: #64748b;
+}
+
+.users-page__table-card .ant-tag {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-weight: 600;
+  border: none;
+}
+
+.users-page__modal .ant-modal-content {
+  border-radius: 28px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+}
+
+.users-page__modal .ant-modal-header {
+  padding: 24px 28px 18px 28px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #eef2f7;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.users-page__modal .ant-modal-title {
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.users-page__modal .ant-modal-body {
+  padding: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent 22%),
+    linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+}
+
+.users-page__modal .ant-modal-footer {
+  padding: 18px 28px 24px 28px;
+  border-top: 1px solid #eef2f7;
+  background: #ffffff;
+}
+
+.users-page__section-note {
+  margin-bottom: 22px;
+  padding: 15px 18px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f8fbff 0%, #f4f8ff 100%);
+  border: 1px solid #dbeafe;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.users-page__profile-upload {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 26px;
+  padding: 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.07), transparent 30%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.users-page__profile-avatar.ant-avatar {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #2563eb;
+  border: 4px solid #ffffff;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+}
+
+.users-page__profile-upload-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.users-page__profile-upload-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.users-page__profile-upload-text {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 6px;
+  max-width: 440px;
+}
+
+.users-page__profile-upload .ant-btn {
+  height: 40px;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-weight: 600;
+  border: 1px solid #dbe2ea;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.users-page__profile-upload .ant-btn:hover {
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.users-page__form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 16px;
+}
+
+.users-page__modal .ant-form-item {
+  margin-bottom: 18px;
+}
+
+.users-page__modal .ant-form-item-label > label {
+  color: #334155;
+  font-weight: 650;
+  font-size: 13px;
+}
+
+.users-page__modal .ant-input,
+.users-page__modal .ant-input-password,
+.users-page__modal .ant-select-selector,
+.users-page__modal .ant-input-affix-wrapper,
+.users-page__modal .ant-input-textarea textarea {
+  border-radius: 14px !important;
+  border: 1px solid #dbe2ea !important;
+  background: #ffffff !important;
+  min-height: 46px;
+  box-shadow: none !important;
+  transition: all 0.2s ease;
+}
+
+.users-page__modal .ant-input::placeholder,
+.users-page__modal .ant-input-textarea textarea::placeholder {
+  color: #94a3b8;
+}
+
+.users-page__modal .ant-input-password .ant-input {
+  min-height: auto;
+}
+
+.users-page__modal .ant-input-textarea textarea {
+  min-height: 110px;
+  resize: vertical;
+  padding-top: 12px;
+}
+
+.users-page__modal .ant-input:hover,
+.users-page__modal .ant-input-password:hover,
+.users-page__modal .ant-select-selector:hover,
+.users-page__modal .ant-input-affix-wrapper:hover,
+.users-page__modal .ant-input-textarea textarea:hover {
+  border-color: #bfdbfe !important;
+}
+
+.users-page__modal .ant-input:focus,
+.users-page__modal .ant-input-focused,
+.users-page__modal .ant-input-password:focus,
+.users-page__modal .ant-input-password-focused,
+.users-page__modal .ant-select-focused .ant-select-selector,
+.users-page__modal .ant-input-affix-wrapper-focused,
+.users-page__modal .ant-input-textarea textarea:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12) !important;
+}
+
+.users-page__modal .ant-select-selector {
+  display: flex !important;
+  align-items: center;
+}
+
+.users-page__modal .ant-btn {
+  border-radius: 12px;
+  height: 42px;
+  padding: 0 18px;
+  font-weight: 600;
+}
+
+.users-page__modal .ant-btn-default {
+  border: 1px solid #dbe2ea;
+  color: #334155;
+  background: #ffffff;
+}
+
+.users-page__modal .ant-btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: none;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+}
+
+.users-page__modal .ant-btn-primary:hover,
+.users-page__modal .ant-btn-primary:focus {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+@media (max-width: 992px) {
+  .users-page {
+    padding: 16px;
+  }
+
+  .users-page__form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .users-page__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .users-page__actions {
+    width: 100%;
+  }
+
+  .users-page__new-btn.ant-btn-primary {
+    width: 100%;
+  }
+
+  .users-page__table-card {
+    border-radius: 18px;
+  }
+
+  .users-page__profile-upload {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .users-page__profile-upload-content {
+    align-items: center;
+  }
+
+  .users-page__modal .ant-modal-body,
+  .users-page__modal .ant-modal-header,
+  .users-page__modal .ant-modal-footer {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+/* ── Adicione ao final do seu UsersPage.css ────────────────────────────────── */
+
+/* Modal tabs */
+.users-page__modal-tabs .ant-tabs-content-holder {
+  padding-top: 16px;
+}
+
+/* ── PositionsTab ──────────────────────────────────────────────────────────── */
+
+.positions-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Bloco do formulário de adição */
+.positions-tab__form {
+  background: var(--color-bg-container, #fafafa);
+  border: 1px solid var(--color-border, #e8e8e8);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.positions-tab__form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Grid dos 4 seletores */
+.positions-tab__selects {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 700px) {
+  .positions-tab__selects {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.positions-tab__select-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.positions-tab__select-item label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text, #333);
+}
+
+.positions-tab__add-btn {
+  align-self: flex-start;
+}
+
+/* ── Lista de posições ─────────────────────────────────────────────────────── */
+
+.positions-tab__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 80px;
+}
+
+.positions-tab__empty {
+  margin: 16px 0;
+}
+
+/* Card de cada posição */
+.positions-tab__position-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid var(--color-border, #e8e8e8);
+  border-radius: 8px;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.positions-tab__position-card:hover {
+  border-color: var(--color-primary, #1677ff);
+  box-shadow: 0 1px 6px rgba(22, 119, 255, 0.1);
+}
+
+/* Ícone */
+.positions-tab__position-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #e6f4ff;
+  color: #1677ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+/* Textos */
+.positions-tab__position-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.positions-tab__position-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.positions-tab__crumb-sep {
+  color: var(--color-text-quaternary, #bbb);
+}
+
+.positions-tab__crumb {
+  font-weight: 500;
+}
+
+.positions-tab__crumb--unit {
+  color: #389e0d;
+}
+
+.positions-tab__crumb--area {
+  color: #d46b08;
+}
+
+.positions-tab__crumb--discipline {
+  color: #531dab;
+}
+
+.positions-tab__position-role {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #222);
+}
+
+/* Botão remover */
+.positions-tab__remove-btn {
+  flex-shrink: 0;
+  opacity: 0.45;
+  transition: opacity 0.15s;
+}
+
+.positions-tab__position-card:hover .positions-tab__remove-btn {
+  opacity: 1;
+}
+
+/* ── Filtros da tabela ─────────────────────────────────────────────────────── */
+
+.users-page__filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: var(--color-bg-container, #fafafa);
+  border: 1px solid var(--color-border, #e8e8e8);
+  border-radius: 8px;
+}
+
+/* Avatar menor no modal */
+.users-page__profile-upload {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.users-page__profile-upload-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}

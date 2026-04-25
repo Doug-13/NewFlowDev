@@ -1,0 +1,42 @@
+{
+  "/api/v1/users":                                          "/users",
+  "/api/v1/users/:id":                                      "/users/:id",
+
+  "/api/v1/document-instances":                             "/documentInstances",
+  "/api/v1/document-instances/:id":                         "/documentInstances/:id",
+  "/api/v1/document-instances/:id/files":                   "/documentInstances/:id",
+
+  "/api/v1/tasks":                                          "/tasks",
+  "/api/v1/tasks/:id":                                      "/tasks/:id",
+
+  "/api/v1/workflows":                                      "/workflows",
+  "/api/v1/workflows/:id":                                  "/workflows/:id",
+
+  "/api/v1/document-types":                                 "/documentTypes",
+  "/api/v1/document-types/:id":                             "/documentTypes/:id",
+
+  "/api/v1/metadata/sets":                                  "/metadataSets",
+  "/api/v1/metadata/sets/:id":                              "/metadataSets/:id",
+
+  "/api/v1/metadata/definitions":                           "/metadataDefinitions",
+  "/api/v1/metadata/definitions/:id":                       "/metadataDefinitions/:id",
+
+  "/api/v1/metadata/values/:documentInstanceId":            "/metadataValues?documentInstanceId=:documentInstanceId",
+
+  "/api/v1/organization/units":                             "/organizationUnits",
+  "/api/v1/organization/units/:id":                         "/organizationUnits/:id",
+
+  "/api/v1/organization/areas":                             "/organizationAreas",
+  "/api/v1/organization/areas/:id":                         "/organizationAreas/:id",
+
+  "/api/v1/organization/disciplines":                       "/organizationDisciplines",
+  "/api/v1/organization/disciplines/:id":                   "/organizationDisciplines/:id",
+
+  "/api/v1/organization/roles":                             "/organizationRoles",
+  "/api/v1/organization/roles/:id":                         "/organizationRoles/:id",
+
+  "/api/v1/dashboard/summary":                              "/dashboard/0",
+
+  "/api/v1/visualizacoes":                                  "/visualizacoes",
+  "/api/v1/visualizacoes/:id":                              "/visualizacoes/:id"
+}

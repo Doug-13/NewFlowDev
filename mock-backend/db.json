@@ -1,0 +1,294 @@
+{
+  "platformAdmins": [
+    {
+      "id": "padmin-1",
+      "name": "Admin Plataforma",
+      "email": "admin@plataforma.local",
+      "password": "Admin@123",
+      "isActive": true
+    }
+  ],
+  "users": [
+    {
+      "id": "user-admin",
+      "tenantId": "tenant-1",
+      "tenantName": "Acme Demo",
+      "name": "Admin Demo",
+      "email": "admin@demo.local",
+      "password": "Admin@123",
+      "role": "Admin",
+      "cpf": "",
+      "phone": "",
+      "department": "TI",
+      "jobTitle": "Administrador do Sistema",
+      "isActive": true,
+      "createdAt": "2024-01-10T08:00:00Z",
+      "notes": "",
+      "status": "active",
+      "substituteId": null,
+      "substituteName": null,
+      "environments": [
+        "Web",
+        "Desktop"
+      ]
+    }
+  ],
+  "tenantModules": [
+    {
+      "id": "tm-1",
+      "tenantId": "tenant-1",
+      "code": "document_types",
+      "name": "Tipos de Documento",
+      "isEnabled": true
+    },
+    {
+      "id": "tm-7",
+      "tenantId": "tenant-1",
+      "code": "notification_templates",
+      "name": "Notificações",
+      "isEnabled": true
+    }
+  ],
+  "organizationUnits": [
+    {
+      "id": "unit-1",
+      "tenantId": "tenant-1",
+      "name": "Matriz São Paulo",
+      "description": "Sede principal",
+      "isActive": true,
+      "createdAt": "2024-01-10T08:00:00Z",
+      "code": "MSP"
+    }
+  ],
+  "organizationAreas": [
+    {
+      "id": "area-1",
+      "tenantId": "tenant-1",
+      "name": "Jurídico",
+      "description": "",
+      "unitId": "unit-1",
+      "unitName": "Matriz São Paulo",
+      "isActive": true,
+      "createdAt": "2024-01-10T08:00:00Z",
+      "code": "JUR"
+    }
+  ],
+  "organizationDisciplines": [
+    {
+      "id": "disc-1",
+      "tenantId": "tenant-1",
+      "name": "Direito Contratual",
+      "description": "Contratos e acordos",
+      "isActive": true,
+      "createdAt": "2024-01-10T08:00:00Z",
+      "code": "DIR-CON"
+    }
+  ],
+  "organizationRoles": [
+    {
+      "id": "role-1",
+      "tenantId": "tenant-1",
+      "name": "Advogado Sênior",
+      "description": "Responsável por revisões jurídicas",
+      "isActive": true,
+      "createdAt": "2024-01-10T08:00:00Z",
+      "code": "ADV-SR"
+    }
+  ],
+  "documentInstances": [
+    {
+      "id": "doc-1",
+      "tenantId": "tenant-1",
+      "title": "Contrato de Manutenção de TI - Infra Corp",
+      "code": "CTR-2024-0001",
+      "status": "in_progress",
+      "documentTypeId": "doctype-1",
+      "documentTypeName": "Contrato",
+      "workflowId": "wf-1",
+      "currentStepName": "Revisão Jurídica",
+      "currentStepOrderIndex": 2,
+      "responsibleId": "user-1",
+      "responsibleName": "Carlos Mendes",
+      "createdById": "user-2",
+      "createdByName": "Fernanda Oliveira",
+      "createdAt": "2024-11-01T09:00:00Z",
+      "updatedAt": "2024-11-05T14:30:00Z",
+      "dueDate": "2024-11-15T23:59:00Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-1",
+      "tenantId": "tenant-1",
+      "documentInstanceId": "doc-1",
+      "documentTitle": "Contrato de Manutenção de TI - Infra Corp",
+      "documentCode": "CTR-2024-0001",
+      "stepName": "Revisão Jurídica",
+      "stepOrderIndex": 2,
+      "assignedUserId": "user-1",
+      "assignedUserName": "Carlos Mendes",
+      "status": "pending",
+      "allowedActions": [
+        "approve",
+        "reject",
+        "return"
+      ],
+      "dueDate": "2024-11-08T23:59:00Z",
+      "createdAt": "2024-11-05T14:30:00Z",
+      "completedAt": null,
+      "comment": null
+    }
+  ],
+  "workflows": [
+    {
+      "id": "wf-1",
+      "tenantId": "tenant-1",
+      "name": "Aprovação de Contratos",
+      "description": "Fluxo padrão de análise, revisão jurídica e aprovação de contratos",
+      "isActive": true,
+      "createdAt": "2024-01-20T08:00:00Z",
+      "steps": [
+        {
+          "id": "step-1",
+          "name": "Solicitação",
+          "description": "Abertura e preenchimento inicial",
+          "orderIndex": 0,
+          "isInitial": true,
+          "isFinal": false,
+          "slaHours": 8,
+          "allowedActions": [
+            "submit"
+          ],
+          "receivesNotification": true,
+          "requiredNotification": false,
+          "responsibles": [
+            {
+              "name": "Solicitante"
+            }
+          ],
+          "metadata": [],
+          "transitions": [
+            {
+              "toStepOrderIndex": 1,
+              "triggerAction": "submit"
+            }
+          ],
+          "notificationTemplateIds": [
+            "ntf-1"
+          ],
+          "notificationTemplateNames": [
+            "Documento aguardando aprovação"
+          ]
+        }
+      ]
+    }
+  ],
+  "documentTypes": [
+    {
+      "id": "doctype-1",
+      "tenantId": "tenant-1",
+      "name": "Contrato",
+      "code": "CTR",
+      "description": "Contratos com fornecedores e parceiros",
+      "isActive": true,
+      "createdAt": "2024-01-12T08:00:00Z"
+    }
+  ],
+  "metadataSets": [
+    {
+      "id": "mset-1",
+      "tenantId": "tenant-1",
+      "name": "Dados do Contrato",
+      "code": "contract_data",
+      "description": "Campos para contratos",
+      "isActive": true,
+      "orderIndex": 1
+    }
+  ],
+  "metadataDefinitions": [
+    {
+      "id": "mdef-1",
+      "tenantId": "tenant-1",
+      "metadataSetId": "mset-1",
+      "metadataSetName": "Dados do Contrato",
+      "name": "supplier",
+      "label": "Fornecedor / Contraparte",
+      "fieldType": "text",
+      "isRequired": true,
+      "isActive": true,
+      "orderIndex": 1,
+      "options": []
+    }
+  ],
+  "metadataValues": [
+    {
+      "id": "mval-1",
+      "documentInstanceId": "doc-1",
+      "metadataDefinitionId": "mdef-1",
+      "name": "supplier",
+      "label": "Fornecedor / Contraparte",
+      "fieldType": "text",
+      "isRequired": true,
+      "value": "Infra Corp Tecnologia LTDA"
+    }
+  ],
+  "dashboard": [
+    {
+      "id": "summary",
+      "tenantId": "tenant-1",
+      "totalDocuments": 1,
+      "byStatus": {
+        "draft": 0,
+        "in_progress": 1,
+        "published": 0,
+        "rejected": 0,
+        "cancelled": 0
+      },
+      "pendingTasks": 1,
+      "overdueTasks": 0,
+      "slaCompliance": 78
+    }
+  ],
+  "visualizacoes": [],
+  "notificationTemplates": [
+    {
+      "id": "ntf-1",
+      "tenantId": "tenant-1",
+      "name": "Documento aguardando aprovação",
+      "code": "DOCUMENTO_AGUARDANDO_APROVACAO",
+      "description": "Enviado quando o documento entra em uma etapa de aprovação.",
+      "channel": "email",
+      "subject": "Documento {{documento}} aguardando sua aprovação",
+      "body": "Olá {{usuario}}, o documento {{documento}} está aguardando sua ação na etapa {{etapa}} do workflow {{workflow}}.",
+      "isActive": true,
+      "createdAt": "2024-11-01T09:00:00Z",
+      "updatedAt": "2024-11-01T09:00:00Z"
+    },
+    {
+      "id": "ntf-2",
+      "tenantId": "tenant-1",
+      "name": "Documento devolvido para ajustes",
+      "code": "DOCUMENTO_DEVOLVIDO_PARA_AJUSTES",
+      "description": "Utilizado quando o documento retorna para a etapa inicial.",
+      "channel": "system",
+      "subject": "",
+      "body": "O documento {{documento}} foi devolvido para ajustes na etapa {{etapa}}.",
+      "isActive": true,
+      "createdAt": "2024-11-02T10:30:00Z",
+      "updatedAt": "2024-11-02T10:30:00Z"
+    },
+    {
+      "id": "ntf-3",
+      "tenantId": "tenant-1",
+      "name": "Documento publicado",
+      "code": "DOCUMENTO_PUBLICADO",
+      "description": "Comunica a publicação do documento ao responsável.",
+      "channel": "whatsapp",
+      "subject": "",
+      "body": "Olá {{usuario}}, o documento {{documento}} foi publicado com sucesso.",
+      "isActive": false,
+      "createdAt": "2024-11-03T14:00:00Z",
+      "updatedAt": "2024-11-03T14:00:00Z"
+    }
+  ]
+}
