@@ -1,55 +1,7 @@
 import { api } from './client'
+import type { CodingRulePart, EnvironmentSettings } from '../types/environmentSettings'
 
-export type RevisionPattern = 'numeric' | 'alphabetic' | 'alphanumeric'
-export type CreationMode = 'single' | 'batch' | 'both'
-export type ResetPeriod = 'never' | 'monthly' | 'yearly'
-export type CodingPartType =
-  | 'fixed'
-  | 'year'
-  | 'unit'
-  | 'area'
-  | 'process'
-  | 'metadata'
-  | 'sequential'
-
-export type CodingRulePart = {
-  type: CodingPartType
-  fixedValue?: string
-  metadataDefinitionId?: string
-  metadataLabel?: string
-  separatorAfter?: string
-}
-
-export type EnvironmentSettings = {
-  id?: string
-  accountId?: string
-  processId?: string
-  name: string
-  code: string
-  description?: string
-  isActive?: boolean
-  revision: {
-    pattern: RevisionPattern
-    initialValue: string
-    autoIncrementOnApproval: boolean
-    allowManualEdition: boolean
-  }
-  creationMode: {
-    mode: CreationMode
-    requireTemplateInBatch: boolean
-  }
-  codingRule: {
-    parts: CodingRulePart[]
-  }
-  sequential: {
-    startAt: number
-    digits: number
-    resetPeriod: ResetPeriod
-  }
-  deadlines: {
-    totalProcessDays: number
-  }
-}
+export type { CodingRulePart, EnvironmentSettings } from '../types/environmentSettings'
 
 type EnvironmentSettingsApiResponse = {
   id?: string
@@ -81,10 +33,6 @@ type EnvironmentSettingsInput = {
 }
 
 const DEFAULT_VALUES: EnvironmentSettings = {
-  name: '',
-  code: '',
-  description: '',
-  isActive: true,
   revision: {
     pattern: 'numeric',
     initialValue: '00',

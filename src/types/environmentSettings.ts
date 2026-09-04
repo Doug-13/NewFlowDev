@@ -7,17 +7,22 @@ export type CodingPartType =
   | 'process'
   | 'sequential'
 
-export type CodingSeparator = '' | '-' | '/' | '.'
-
 export interface CodingRulePart {
   type: CodingPartType
   fixedValue?: string
   metadataDefinitionId?: string
   metadataLabel?: string
-  separatorAfter?: CodingSeparator
+  separatorAfter?: string
 }
 
 export interface EnvironmentSettings {
+  id?: string
+  accountId?: string
+  processId?: string
+  name?: string
+  code?: string
+  description?: string
+  isActive?: boolean
   revision: {
     pattern: 'numeric' | 'alphabetic' | 'alphanumeric'
     initialValue: string

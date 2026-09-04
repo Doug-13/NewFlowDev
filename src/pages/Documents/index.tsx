@@ -6,7 +6,7 @@ import {
 } from 'antd'
 import {
   PlusOutlined, EyeOutlined, ArrowLeftOutlined,
-  FileTextOutlined, LockOutlined, FolderOpenOutlined,
+  LockOutlined, FolderOpenOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { getDocuments } from '../../api/documents'

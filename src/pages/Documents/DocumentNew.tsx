@@ -36,31 +36,68 @@ function checkPermission(perms: any, userId: string, userRole: string, userProce
   return false
 }
 
-function mergeCreationFields(workflowId: string, workflowSteps: any[], metadataDefinitions: MetadataDefinitionDto[]): MetadataValueDto[] {
-  const initialStep = workflowSteps.find((s: any) => s.isInitial === true) ?? workflowSteps[0] ?? null
-  if (!initialStep) return []
-
+function mergeCreationFields(
+  workflowId: string,
+  workflowSteps: any[],
+  metadataDefinitions: MetadataDefinitionDto[],
+): MetadataValueDto[] {
   const elementConfigs = getElementConfigsByWorkflow(workflowId)
-  const startConfig = elementConfigs.find((c) => c.elementId === String(initialStep.id ?? '') && c.kind === 'start') ?? null
-  const activityConfig = elementConfigs.find((c) => c.elementId === String(initialStep.id ?? '') && c.kind === 'activity') ?? null
-  const selectedConfig = startConfig?.config ?? activityConfig?.config ?? null
 
-  const explicitFields: Array<Record<string, unknown>> =
-    Array.isArray((selectedConfig as any)?.metadataFields) ? (selectedConfig as any).metadataFields
-      : Array.isArray(initialStep?.metadataFields) ? initialStep.metadataFields : []
+  // ✅ CORREÇÃO: prioriza o Start Event configurado no elementConfigs
+  // O start event é o elemento correto para definir os campos de criação do documento
+  const startElementConfig = elementConfigs.find((c) => c.kind === 'start') ?? null
 
-  const metadataDefinitionIds: string[] =
-    Array.isArray((selectedConfig as any)?.initialMetadataDefinitionIds) ? (selectedConfig as any).initialMetadataDefinitionIds
-      : Array.isArray((selectedConfig as any)?.metadataDefinitionIds) ? (selectedConfig as any).metadataDefinitionIds : []
+  // Fallback legado: tenta achar pelo steps da API com isInitial, depois steps[0]
+  const initialStep =
+    workflowSteps.find((s: any) => s.isInitial === true) ?? workflowSteps[0] ?? null
+
+  // Resolução do config a usar: Start Event tem prioridade absoluta
+  let selectedConfig: any = null
+
+  if (startElementConfig) {
+    // Usa diretamente o config do Start Event — este é o caminho correto
+    selectedConfig = startElementConfig.config
+  } else if (initialStep) {
+    // Fallback legado: tenta encontrar config pelo elementId do initialStep
+    const activityConfig = elementConfigs.find(
+      (c) =>
+        c.elementId === String(initialStep.id ?? '') &&
+        (c.kind === 'activity' || c.kind === 'start'),
+    )
+    selectedConfig = activityConfig?.config ?? null
+  }
+
+  if (!selectedConfig) return []
+
+  // Campos explícitos definidos no config (metadataFields com isRequired/isReadOnly por campo)
+  const explicitFields: Array<Record<string, unknown>> = Array.isArray(
+    (selectedConfig as any)?.metadataFields,
+  )
+    ? (selectedConfig as any).metadataFields
+    : Array.isArray(initialStep?.metadataFields)
+      ? initialStep.metadataFields
+      : []
+
+  // IDs de metadados definidos no start event (initialMetadataDefinitionIds tem prioridade)
+  const metadataDefinitionIds: string[] = Array.isArray(
+    (selectedConfig as any)?.initialMetadataDefinitionIds,
+  )
+    ? (selectedConfig as any).initialMetadataDefinitionIds
+    : Array.isArray((selectedConfig as any)?.metadataDefinitionIds)
+      ? (selectedConfig as any).metadataDefinitionIds
+      : []
 
   const fromDefinitions = metadataDefinitionIds
     .map((id) => metadataDefinitions.find((d) => d.id === id))
     .filter(Boolean)
     .map((d) => ({
       metadataDefinitionId: String(d!.id),
-      name: String(d!.name ?? d!.label ?? d!.id), label: String(d!.label ?? d!.name ?? d!.id),
-      fieldType: String(d!.fieldType ?? 'text'), maskType: d!.maskType === undefined ? null : d!.maskType,
-      isRequired: Boolean(d!.isRequired), value: null,
+      name: String(d!.name ?? d!.label ?? d!.id),
+      label: String(d!.label ?? d!.name ?? d!.id),
+      fieldType: String(d!.fieldType ?? 'text'),
+      maskType: d!.maskType === undefined ? null : d!.maskType,
+      isRequired: Boolean(d!.isRequired),
+      value: null,
       options: Array.isArray(d!.options) ? d!.options : [],
       tableColumns: Array.isArray(d!.tableColumns) ? d!.tableColumns : [],
     }))
@@ -75,7 +112,8 @@ function mergeCreationFields(workflowId: string, workflowSteps: any[], metadataD
       fieldType: String(field.fieldType ?? d?.fieldType ?? 'text'),
       maskType: field.maskType !== undefined ? String(field.maskType) : d?.maskType ?? null,
       isRequired: field.isRequired !== undefined ? Boolean(field.isRequired) : Boolean(d?.isRequired ?? false),
-      isReadOnly: Boolean(field.isReadOnly), value: null,
+      isReadOnly: Boolean(field.isReadOnly),
+      value: null,
       options: Array.isArray(d?.options) ? d?.options : [],
       tableColumns: Array.isArray(d?.tableColumns) ? d?.tableColumns : [],
     }
@@ -91,7 +129,8 @@ function mergeCreationFields(workflowId: string, workflowSteps: any[], metadataD
       label: f.label ?? prev?.label ?? f.metadataDefinitionId,
       fieldType: f.fieldType ?? prev?.fieldType ?? 'text',
       maskType: f.maskType ?? prev?.maskType ?? null,
-      isRequired: f.isRequired, value: null,
+      isRequired: f.isRequired,
+      value: null,
       options: f.options ?? prev?.options,
       tableColumns: f.tableColumns ?? prev?.tableColumns,
     })
@@ -146,10 +185,24 @@ export function DocumentNewPage() {
   ) ?? null
 
   const steps = (workflow?.steps as any[]) ?? []
-  const initialStep = steps.find((s: any) => s.isInitial === true) ?? steps[0] ?? null
+
+  // ✅ CORREÇÃO: busca o Start Event diretamente nos elementConfigs do workflow
+  const workflowElementConfigs = workflow
+    ? getElementConfigsByWorkflow(String(workflow.id))
+    : []
+
+  const startElementConfig = workflowElementConfigs.find((c) => c.kind === 'start') ?? null
+
+  // Nome exibido no card de resumo: prioriza o nome do Start Event configurado
+  const initialStepDisplayName =
+    startElementConfig?.elementName ??
+    steps.find((s: any) => s.isInitial === true)?.name ??
+    steps[0]?.name ??
+    null
 
   const creationFields = useMemo(
     () => workflow ? mergeCreationFields(String(workflow.id), steps, metadataDefinitions) : [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [workflow, steps, metadataDefinitions],
   )
 
@@ -195,7 +248,6 @@ export function DocumentNewPage() {
     },
   })
 
-  // ─── CORREÇÃO: valida processId antes de submeter ────────────────────────────
   const handleSubmit = (values: Record<string, any>) => {
     if (!canCreate) {
       message.error('Você não tem permissão para criar documentos neste processo.')
@@ -239,7 +291,6 @@ export function DocumentNewPage() {
 
   if (loadingWorkflows) return <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}><Spin size="large" /></div>
 
-  // ─── CORREÇÃO: avisa visualmente se o processId está ausente ─────────────────
   const missingProcessId = !loadingWorkflows && !!workflow && !paramProcessId && !workflow.processId
 
   return (
@@ -258,9 +309,12 @@ export function DocumentNewPage() {
             {workflow ? <Text strong>{workflow.name}</Text>
               : <Text type="danger"><ExclamationCircleOutlined /> Nenhum fluxo encontrado para este processo</Text>}
           </Descriptions.Item>
-          {initialStep && (
-            <Descriptions.Item label="Primeira etapa" span={2}>
-              <Text type="secondary">O documento será criado diretamente em: <strong>{initialStep.name}</strong></Text>
+          {/* ✅ CORREÇÃO: exibe o nome do Start Event (evento de início), não da primeira atividade */}
+          {initialStepDisplayName && (
+            <Descriptions.Item label="Evento de início" span={2}>
+              <Text type="secondary">
+                O documento será iniciado em: <strong>{initialStepDisplayName}</strong>
+              </Text>
             </Descriptions.Item>
           )}
         </Descriptions>
@@ -283,7 +337,6 @@ export function DocumentNewPage() {
         />
       )}
 
-      {/* CORREÇÃO: alerta quando o processId está faltando no workflow */}
       {missingProcessId && (
         <Alert type="error" showIcon icon={<ExclamationCircleOutlined />}
           message="Processo não vinculado ao fluxo"

@@ -61,6 +61,8 @@ import {
   type WorkflowDefinition,
 } from '../../api/workflows'
 import { MetadataForm } from '../../components/MetadataForm'
+import { BpmnViewer } from '../../components/BpmnViewer'
+import { useWorkflowNodeStatuses } from '../../hooks/useWorkflowNodeStatuses'
 
 const { Title, Text } = Typography
 
@@ -405,6 +407,7 @@ function isVisibleWorkflowStepKind(kind: string): boolean {
     'timer',
     'signal',
     'conditional',
+    'end',  // ← adicionar
   ].includes(kind)
 }
 
@@ -1840,17 +1843,49 @@ export function DocumentDetailPage() {
     },
   })
 
+  const lastActiveStepIndex = useMemo(() => {
+    // Documento ainda em andamento — usa o índice atual normalmente
+    if (!isFinished) return currentWorkflowStepIndex
+
+    // Tenta encontrar a última etapa pelo stepName nos auditLogs
+    // (os logs são ordenados por createdAt DESC, então o primeiro com stepName
+    //  é o mais recente — ou seja, a etapa que originou o encerramento)
+    const lastActionLog = auditLogs.find(
+      (log: any) =>
+        log?.stepName &&
+        String(log.stepName).trim() !== '' &&
+        String(log.stepName).trim() !== 'null',
+    )
+
+    if (lastActionLog?.stepName) {
+      const byName = workflowSteps.findIndex(
+        (step) =>
+          String(step.name ?? '').trim() ===
+          String(lastActionLog.stepName).trim(),
+      )
+      if (byName >= 0) return byName
+    }
+
+    // Fallback: se não achou pelo log, considera que o último passo visível
+    // foi o primeiro (índice 0) — melhor do que marcar tudo como concluído
+    return 0
+  }, [isFinished, currentWorkflowStepIndex, auditLogs, workflowSteps])
+
   const stepsItems = useMemo(
     () =>
       workflowSteps.map((step, index) => {
+        // Etapa atual: só existe quando o documento ainda está em andamento
         const isCurrent =
+          !isFinished &&
           currentWorkflowStepIndex !== null &&
-          index === currentWorkflowStepIndex &&
-          !isFinished
+          index === currentWorkflowStepIndex
 
-        const isPast =
-          (currentWorkflowStepIndex !== null && index < currentWorkflowStepIndex) ||
-          isFinished
+        // Etapa passada:
+        // - Em andamento: índices anteriores ao atual
+        // - Encerrado: apenas até lastActiveStepIndex (não marca etapas além do que foi executado)
+        const isPast = isFinished
+          ? index <= (lastActiveStepIndex ?? 0)
+          : currentWorkflowStepIndex !== null && index < currentWorkflowStepIndex
 
         return {
           title: step.name,
@@ -1868,8 +1903,42 @@ export function DocumentDetailPage() {
           ),
         }
       }),
-    [workflowSteps, currentWorkflowStepIndex, isFinished],
+    [workflowSteps, currentWorkflowStepIndex, lastActiveStepIndex, isFinished],
   )
+
+  const allElementIds = useMemo(() => {
+    if (!workflow) return []
+    const wf = workflow as any
+
+    if (Array.isArray(wf.elements) && wf.elements.length > 0) {
+      return wf.elements
+        .map((e: any) => String(e.elementId ?? e.element_id ?? e.id ?? ''))
+        .filter(Boolean)
+    }
+
+    return (workflow.elementConfigs ?? [])
+      .map((c: any) => String(c.elementId ?? ''))
+      .filter(Boolean)
+  }, [workflow])
+
+  // 2. workflowElements — passa os elementos completos para o hook poder
+  //    identificar quais são End Events pelo campo elementKind/element_kind
+  const workflowElements = useMemo(() => {
+    if (!workflow) return []
+    const wf = workflow as any
+    return Array.isArray(wf.elements) ? wf.elements : []
+  }, [workflow])
+
+  // 3. nodeOverrides — passa workflowElements
+  const nodeOverrides = useWorkflowNodeStatuses({
+    allElementIds,
+    currentElementId: doc?.currentElementId,
+    documentStatus: doc?.status,
+    auditLogs,
+    workflowElements,   // ← novo
+  })
+
+
 
   function findNextStep(action: ConfiguredAction): WorkflowStepEnriched | null {
     if (!Array.isArray(workflowSteps) || workflowSteps.length === 0 || !currentStep) {
@@ -2361,83 +2430,99 @@ export function DocumentDetailPage() {
             label: 'Workflow',
             children: (
               <Card>
-                <Space direction="vertical" size={10} style={{ width: '100%' }}>
-                  {workflowSteps.map((step, idx) => {
-                    const isCurrent =
-                      currentWorkflowStepIndex !== null &&
-                      idx === currentWorkflowStepIndex &&
-                      !isFinished
+                {isFinished && (
+                  <Alert
+                    type="success"
+                    showIcon
+                    icon={<CheckCircleOutlined />}
+                    message="Fluxo encerrado"
+                    description={`Este documento foi encerrado com status: ${doc?.status ?? ''}`}
+                    style={{ marginBottom: 16, borderRadius: 10 }}
+                  />
+                )}
 
-                    const slaLabel = formatSla(step.deadlineMode, step.deadlineValue)
+                {workflow?.bpmnXml?.trim() ? (
+                  <BpmnViewer
+                    bpmnXml={workflow.bpmnXml}
+                    overrides={nodeOverrides}
+                    height={420}
+                  />
+                ) : (
+                  // Fallback: lista de cards quando não há XML BPMN
+                  <Space direction="vertical" size={10} style={{ width: '100%' }}>
+                    {workflowSteps.map((step, idx) => {
+                      const isCurrent =
+                        !isFinished &&
+                        currentWorkflowStepIndex !== null &&
+                        idx === currentWorkflowStepIndex
 
-                    return (
-                      <div
-                        key={step.id ?? idx}
-                        style={{
-                          border: isCurrent
-                            ? '1.5px solid #1677ff'
-                            : '1px solid #f0f0f0',
-                          borderRadius: 10,
-                          padding: '12px 16px',
-                          background: isCurrent ? '#f0f7ff' : '#fff',
-                        }}
-                      >
-                        <Space align="center" wrap>
-                          <Text strong>{step.name}</Text>
-                          {isCurrent && <Tag color="blue">Atual</Tag>}
-                          {step.isInitial && <Tag color="green">Inicial</Tag>}
-                          {step.isFinal && <Tag color="default">Final</Tag>}
-                          {step.elementKind && (
-                            <Tag color="purple">{step.elementKind}</Tag>
-                          )}
-                        </Space>
+                      const wasActive =
+                        isFinished &&
+                        idx === (lastActiveStepIndex ?? 0)
 
-                        {Array.isArray(step.responsibles) &&
-                          step.responsibles.length > 0 && (
+                      const slaLabel = formatSla(step.deadlineMode, step.deadlineValue)
+
+                      return (
+                        <div
+                          key={step.id ?? idx}
+                          style={{
+                            border: isCurrent
+                              ? '1.5px solid #1677ff'
+                              : wasActive
+                                ? '1.5px solid #52c41a'
+                                : '1px solid #f0f0f0',
+                            borderRadius: 10,
+                            padding: '12px 16px',
+                            background: isCurrent ? '#f0f7ff' : wasActive ? '#f6ffed' : '#fff',
+                          }}
+                        >
+                          <Space align="center" wrap>
+                            <Text strong>{step.name}</Text>
+                            {isCurrent && <Tag color="blue">Atual</Tag>}
+                            {wasActive && <Tag color="success">Concluída</Tag>}
+                            {step.isInitial && <Tag color="green">Inicial</Tag>}
+                            {step.elementKind && <Tag color="purple">{step.elementKind}</Tag>}
+                          </Space>
+
+                          {Array.isArray(step.responsibles) && step.responsibles.length > 0 && (
                             <div style={{ marginTop: 8 }}>
                               <Text type="secondary" style={{ fontSize: 12 }}>
-                                Responsáveis:{' '}
-                                {step.responsibles.map(formatResponsibleLabel).join(', ')}
+                                Responsáveis: {step.responsibles.map(formatResponsibleLabel).join(', ')}
                               </Text>
                             </div>
                           )}
 
-                        {slaLabel && (
-                          <div style={{ marginTop: 8 }}>
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              Prazo: {slaLabel}
-                            </Text>
-                          </div>
-                        )}
+                          {slaLabel && (
+                            <div style={{ marginTop: 8 }}>
+                              <Text type="secondary" style={{ fontSize: 12 }}>Prazo: {slaLabel}</Text>
+                            </div>
+                          )}
 
-                        {step.actions.length > 0 && (
-                          <Space wrap style={{ marginTop: 10 }}>
-                            {step.actions.map((action) => (
-                              <Tag
-                                key={action.id}
-                                color={ACTION_COLORS[action.outcome] ? undefined : 'blue'}
-                                style={{
-                                  background:
-                                    ACTION_COLORS[action.outcome] ?? '#e6f4ff',
-                                  color: ACTION_COLORS[action.outcome]
-                                    ? '#fff'
-                                    : undefined,
-                                  borderColor:
-                                    ACTION_COLORS[action.outcome] ?? undefined,
-                                }}
-                              >
-                                {action.label}
-                              </Tag>
-                            ))}
-                          </Space>
-                        )}
-                      </div>
-                    )
-                  })}
-                </Space>
+                          {step.actions.length > 0 && !isFinished && (
+                            <Space wrap style={{ marginTop: 10 }}>
+                              {step.actions.map((action) => (
+                                <Tag
+                                  key={action.id}
+                                  style={{
+                                    background: ACTION_COLORS[action.outcome] ?? '#e6f4ff',
+                                    color: ACTION_COLORS[action.outcome] ? '#fff' : undefined,
+                                    borderColor: ACTION_COLORS[action.outcome] ?? undefined,
+                                  }}
+                                >
+                                  {action.label}
+                                </Tag>
+                              ))}
+                            </Space>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </Space>
+                )}
               </Card>
             ),
           },
+
           {
             key: 'references',
             label: `Referências (${references.length})`,
