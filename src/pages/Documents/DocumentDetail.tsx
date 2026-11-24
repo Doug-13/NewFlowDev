@@ -47,6 +47,7 @@ import {
   type DocumentReferenceItem,
 } from '../../api/documents'
 import { StatusBadge } from '../../components/StatusBadge'
+import { DocumentGovernancePanel } from '../../components/documents/DocumentGovernancePanel'
 import { Timeline } from '../../components/Timeline'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -2361,6 +2362,11 @@ export function DocumentDetailPage() {
 
       <Tabs
         items={[
+          {
+            key: 'governance',
+            label: 'Controle documental',
+            children: <DocumentGovernancePanel documentInstanceId={String(doc.id)} />,
+          },
           {
             key: 'metadata',
             label: 'Metadados',

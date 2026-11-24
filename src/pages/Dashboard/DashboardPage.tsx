@@ -49,7 +49,7 @@ function StatCard({ icon, value, label, color, bgColor }: StatCardProps) {
 }
 
 export function DashboardPage() {
-  const { data, isLoading } = useQuery({ queryKey: ['dashboard'], queryFn: getDashboard })
+  const { data, isLoading } = useQuery({ queryKey: ['dashboard'], queryFn: () => getDashboard() })
 
   if (isLoading) {
     return (

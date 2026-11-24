@@ -3,14 +3,14 @@ import { Routes, Route, Link, useNavigate, useLocation, useParams } from 'react-
 import { useQuery } from '@tanstack/react-query'
 import {
   Layout, Menu, Avatar, Dropdown, Typography, Tag,
-  Button, Space, Divider, Tooltip, Spin,
+  Button, Space, Divider, Tooltip, Spin, Switch,
 } from 'antd'
 import {
   DashboardOutlined, ApartmentOutlined, CheckSquareOutlined,
   UserOutlined, LogoutOutlined, FolderOpenOutlined, DatabaseOutlined,
   TeamOutlined, SettingOutlined, GlobalOutlined, UnorderedListOutlined,
   MenuFoldOutlined, MenuUnfoldOutlined, BellOutlined, AppstoreOutlined,
-  PlusOutlined, RightOutlined, EyeOutlined,
+  PlusOutlined, RightOutlined, EyeOutlined, ArrowLeftOutlined,
 } from '@ant-design/icons'
 
 import { api } from './api/client'
@@ -37,6 +37,8 @@ import { PlatformAdminsPage } from './pages/Platform/PlatformAdminsPage'
 import { TenantUsersPage } from './pages/Platform/TenantUsersPage'
 import { WorkflowStudioPage } from './pages/Workflows/WorkflowStudioPage'
 import { logout } from './api/auth'
+import { ConfigurationWorkspace } from './pages/Admin/ConfigurationWorkspace'
+import { getConfigEnvironments, getEnvironmentProcessIds } from './api/configuration'
 
 const { Header, Sider, Content } = Layout
 const { Text } = Typography
@@ -307,9 +309,13 @@ function Topbar({
   onLogout,
   accent = '#1677ff',
   context,
+  configMode,
+  onConfigModeChange,
 }: {
   collapsed: boolean
   onToggle: () => void
+  configMode?: boolean
+  onConfigModeChange?: (checked: boolean) => void
   userName?: string
   userRole?: string
   onLogout: () => void
@@ -356,6 +362,7 @@ function Topbar({
       </div>
 
       <Space size={12}>
+        {onConfigModeChange && <Space size={6}><Text type="secondary" style={{ fontSize: 12 }}>Configuração</Text><Switch size="small" checked={!!configMode} onChange={onConfigModeChange} /></Space>}
         <Button
           type="text"
           icon={<BellOutlined />}
@@ -544,6 +551,13 @@ function PlatformLayout() {
   )
 }
 
+
+function activeProcessItems(ids: string[], processes: any[]) {
+  return processes.filter((p) => ids.includes(p.id)).map((p) => ({
+    key: `/processes/${p.id}`, icon: <RightOutlined />, label: <Link to={`/processes/${p.id}`}>{p.name}</Link>,
+  }))
+}
+
 function AppLayout() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -551,6 +565,8 @@ function AppLayout() {
   const enabledModules = useAuthStore((s) => s.enabledModules)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const [collapsed, setCollapsed] = useState(false)
+  const configMode = location.pathname.startsWith('/configuration')
+
 
   const isAdmin = isAdminUser(user)
   const has = (module: string) => isAdmin || enabledModules.includes(module)
@@ -572,6 +588,31 @@ function AppLayout() {
     staleTime: 0,
   })
 
+  const { data: configuredEnvironments = [] } = useQuery({
+    queryKey: ['configuration-environments'],
+    queryFn: getConfigEnvironments,
+    enabled: isAdmin,
+  })
+  const { data: environmentProcessLinks = {} } = useQuery<Record<string, string[]>>({
+    queryKey: ['configuration-sidebar-links', configuredEnvironments.map((e) => e.id).join(',')],
+    queryFn: async () => Object.fromEntries(await Promise.all(configuredEnvironments.map(async (e) => [e.id, await getEnvironmentProcessIds(e.id)] as const))),
+    enabled: isAdmin && configuredEnvironments.length > 0,
+  })
+  const configurationMenuItems: any[] = [
+    { key: '/users', icon: <UserOutlined />, label: <Link to="/users">Usuários e permissões</Link> },
+    { type: 'group', label: 'AMBIENTES', children: [
+      ...configuredEnvironments.map((environment) => ({
+        key: `env-${environment.id}`, icon: <FolderOpenOutlined />, label: environment.name,
+        children: [
+          { key: `/configuration?environment=${environment.id}&section=overview`, label: <Link to={`/configuration?environment=${environment.id}&section=overview`}>Visão Geral</Link>, icon: <DashboardOutlined /> },
+          { type: 'group', label: 'PROCESSOS', children: activeProcessItems(environmentProcessLinks[environment.id] ?? [], processes) },
+          { key: `new-process-${environment.id}`, label: <Link to={`/configuration?environment=${environment.id}&action=new-process`}>+ Novo ou vincular processo</Link>, icon: <PlusOutlined /> },
+        ],
+      })),
+      { key: '/configuration?action=new-environment', icon: <PlusOutlined />, label: <Link to="/configuration?action=new-environment">Novo ambiente</Link> },
+    ] },
+    { key: '/', icon: <ArrowLeftOutlined />, label: <Link to="/">Voltar à operação</Link> },
+  ]
   const activeProcesses = useMemo(
     () => processes.filter((p: any) => p.isActive),
     [processes],
@@ -698,8 +739,9 @@ function AppLayout() {
             theme="dark"
             mode="inline"
             inlineCollapsed={collapsed}
-            selectedKeys={[getTenantSelectedKey(location.pathname)]}
-            items={menuItems}
+            selectedKeys={configMode ? [`${location.pathname}${location.search}`] : [getTenantSelectedKey(location.pathname)]}
+            defaultOpenKeys={configMode ? configuredEnvironments.map((e) => `env-${e.id}`) : undefined}
+            items={configMode ? configurationMenuItems : menuItems}
             style={{ background: 'transparent', border: 'none' }}
           />
         </div>
@@ -722,6 +764,8 @@ function AppLayout() {
           onLogout={handleLogout}
           accent="#1677ff"
           context={context}
+          configMode={configMode}
+          onConfigModeChange={isAdmin ? (checked) => navigate(checked ? '/configuration' : '/') : undefined}
         />
 
         <Content style={{ padding: 24 }}>
@@ -736,6 +780,7 @@ function AppLayout() {
           >
             <Routes>
               <Route index element={<DashboardPage />} />
+              <Route path="configuration" element={<ConfigurationWorkspace />} />
               <Route path="documents" element={<DocumentsPage />} />
               <Route path="documents/new" element={<DocumentNewPage />} />
               <Route path="documents/:id" element={<DocumentDetailPage />} />

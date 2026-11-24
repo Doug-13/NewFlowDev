@@ -192,10 +192,15 @@ export function MetadataPage() {
     setForm.setFieldValue('code', generatedCode)
   }, [watchedSetName, setForm])
 
-  const { data: metadataSets = [], isLoading: isLoadingSets } = useQuery({
+  const { data: metadataSetsData, isLoading: isLoadingSets } = useQuery({
     queryKey: ['metadata-sets'],
     queryFn: () => getMetadataSets(),
   })
+
+  const metadataSets = useMemo(
+    () => metadataSetsData ?? [],
+    [metadataSetsData],
+  )
 
   const { data: allMetadataDefinitions = [], isLoading } = useQuery({
     queryKey: ['metadata-definitions', 'all'],
@@ -211,20 +216,22 @@ export function MetadataPage() {
   useEffect(() => {
     setCollapsedSets((prev) => {
       const next = { ...prev }
+      const validIds = new Set(metadataSets.map((set) => set.id))
 
       metadataSets.forEach((set) => {
-        if (next[set.id] === undefined) {
-          next[set.id] = false
-        }
+        if (next[set.id] === undefined) next[set.id] = false
       })
 
       Object.keys(next).forEach((key) => {
-        if (!metadataSets.some((set) => set.id === key)) {
-          delete next[key]
-        }
+        if (!validIds.has(key)) delete next[key]
       })
 
-      return next
+      const keys = Object.keys(next)
+      const changed =
+        keys.length !== Object.keys(prev).length ||
+        keys.some((key) => next[key] !== prev[key])
+
+      return changed ? next : prev
     })
   }, [metadataSets])
 
