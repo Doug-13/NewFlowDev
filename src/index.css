@@ -1,2 +1,46 @@
-* { box-sizing: border-box; }
-body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+/* NewFlow Design System v1 — tipografia e acabamento global. */
+:root {
+  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --nf-font: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  --nf-ink: #17263e;
+  --nf-muted: #64748b;
+  --nf-stroke: #e4eaf2;
+  --nf-radius: 12px;
+  --nf-shadow: 0 4px 20px rgba(22, 38, 62, .045);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { font-size: 14px; }
+body { margin: 0; min-width: 320px; color: var(--nf-ink); background: #f5f7fb; font-family: var(--nf-font); line-height: 1.5; }
+button, input, textarea, select { font: inherit; }
+.ant-app, .ant-layout, .ant-modal, .ant-drawer, .ant-table, .ant-form, .ant-menu, .ant-tabs, .ant-typography { font-family: var(--nf-font); }
+.ant-typography { overflow-wrap: anywhere; }
+/* Hierarquia consistente em todas as páginas */
+h1, .ant-typography h1 { font-size: 26px; font-weight: 700; letter-spacing: -.6px; line-height: 1.25; }
+h2, .ant-typography h2 { font-size: 22px; font-weight: 700; letter-spacing: -.4px; line-height: 1.3; }
+h3, .ant-typography h3 { font-size: 19px; font-weight: 650; letter-spacing: -.3px; line-height: 1.35; }
+h4, .ant-typography h4 { font-size: 17px; font-weight: 650; line-height: 1.4; }
+h5, .ant-typography h5 { font-size: 15px; font-weight: 650; line-height: 1.45; }
+.ant-form-item-label > label { font-size: 13px; font-weight: 550; }
+.ant-form-item-explain, .ant-form-item-extra { font-size: 12px; line-height: 1.45; }
+.ant-card { border-color: var(--nf-stroke); border-radius: var(--nf-radius); box-shadow: var(--nf-shadow); }
+.ant-card .ant-card-head { border-bottom-color: var(--nf-stroke); }
+.ant-card .ant-card-head-title { font-weight: 650; letter-spacing: -.1px; }
+.ant-table-wrapper .ant-table-thead > tr > th { font-size: 12px; font-weight: 650; letter-spacing: .15px; }
+.ant-table-wrapper .ant-table-tbody > tr > td { font-size: 13px; }
+.ant-modal .ant-modal-title { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+.ant-tabs .ant-tabs-tab { font-weight: 550; }
+.ant-btn { letter-spacing: 0; }
+.ant-btn-primary { box-shadow: 0 2px 7px rgba(37,99,235,.13); }
+.ant-btn:focus-visible, .ant-input:focus-visible, .ant-select-selector:focus-visible, a:focus-visible {
+  outline: 2px solid #6fa3fa; outline-offset: 2px;
+}
+/* Escalas menores em telas compactas */
+@media (max-width: 768px) {
+  h1, .ant-typography h1 { font-size: 23px; }
+  h2, .ant-typography h2 { font-size: 20px; }
+  .ant-card .ant-card-body { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }

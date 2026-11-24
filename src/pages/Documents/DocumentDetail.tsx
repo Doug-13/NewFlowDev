@@ -1,3 +1,4 @@
+import { GRDPanel } from './GRDPanel'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -2365,7 +2366,7 @@ export function DocumentDetailPage() {
           {
             key: 'governance',
             label: 'Controle documental',
-            children: <DocumentGovernancePanel documentInstanceId={String(doc.id)} />,
+            children: <><DocumentGovernancePanel documentInstanceId={String(doc.id)} /><GRDPanel documentInstanceId={String(doc.id)} /></>,
           },
           {
             key: 'metadata',

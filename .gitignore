@@ -7,3 +7,8 @@ dist/
 *-backup
 *.v5-backup
 *.dgt-backup
+.backup-*/
+*.bak
+*.bak-*
+*.v5-backup
+*.dgt-backup

@@ -1,3 +1,4 @@
+import { LDImportPanel } from './LDImportPanel'
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -365,6 +366,7 @@ export function ProcessConfigurationTab({
               </Space>}
             </Form.List>
             <Alert type="warning" showIcon style={{ marginTop: 16 }} title="Regras da LD" description="Os nomes de colunas devem ser únicos. A geração de códigos usa a aba Codificação do documento e seu sequencial, não o número da linha da planilha." />
+            {selectedProcessId && <LDImportPanel processId={selectedProcessId} />}
           
           </Card>
         )}
