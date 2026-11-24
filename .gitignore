@@ -1,1 +1,9 @@
 node_modules/
+.env
+.env.local
+dist/
+*.bak
+*.bak-*
+*-backup
+*.v5-backup
+*.dgt-backup

@@ -3,14 +3,13 @@ import { Routes, Route, Link, useNavigate, useLocation, useParams } from 'react-
 import { useQuery } from '@tanstack/react-query'
 import {
   Layout, Menu, Avatar, Dropdown, Typography, Tag,
-  Button, Space, Divider, Tooltip, Spin, Switch,
+  Button, Space, Divider, Spin, Switch,
 } from 'antd'
 import {
-  DashboardOutlined, ApartmentOutlined, CheckSquareOutlined,
-  UserOutlined, LogoutOutlined, FolderOpenOutlined, DatabaseOutlined,
-  TeamOutlined, SettingOutlined, GlobalOutlined, UnorderedListOutlined,
+  DashboardOutlined, CheckSquareOutlined,
+  UserOutlined, LogoutOutlined, FolderOpenOutlined, TeamOutlined, SettingOutlined, GlobalOutlined, UnorderedListOutlined,
   MenuFoldOutlined, MenuUnfoldOutlined, BellOutlined, AppstoreOutlined,
-  PlusOutlined, RightOutlined, EyeOutlined, ArrowLeftOutlined,
+  PlusOutlined, RightOutlined, ArrowLeftOutlined,
 } from '@ant-design/icons'
 
 import { api } from './api/client'
@@ -562,21 +561,19 @@ function AppLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const user = useAuthStore((s) => s.user)
-  const enabledModules = useAuthStore((s) => s.enabledModules)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const [collapsed, setCollapsed] = useState(false)
-  const configMode = location.pathname.startsWith('/configuration')
-
-
   const isAdmin = isAdminUser(user)
-  const has = (module: string) => isAdmin || enabledModules.includes(module)
+  const adminPaths = ['/users', '/organization', '/notifications', '/metadata', '/exibicao', '/environment-settings', '/workflows', '/processes/new']
+  const configMode = isAdmin && (location.pathname.startsWith('/configuration') || adminPaths.some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`)) || /^\/processes\/[^/]+$/.test(location.pathname))
+
   const context = resolveAppContext(user)
   const accountId = resolveAccountId(user)
 
   const { data: processes = [], isLoading: loadingProcesses } = useQuery<any[]>({
-    queryKey: ['sidebar-processes', accountId],
+    queryKey: ['sidebar-processes', accountId, configMode],
     queryFn: async () => {
-      const { data } = await api.get('/processes', { params: { accountId } })
+      const { data } = await api.get(configMode ? '/processes' : '/processes/available')
       if (!Array.isArray(data)) return []
 
       return data
@@ -599,7 +596,10 @@ function AppLayout() {
     enabled: isAdmin && configuredEnvironments.length > 0,
   })
   const configurationMenuItems: any[] = [
-    { key: '/users', icon: <UserOutlined />, label: <Link to="/users">Usuários e permissões</Link> },
+    { type: 'group', label: 'ADMINISTRAÇÃO', children: [
+      { key: '/users', icon: <UserOutlined />, label: <Link to="/users">Usuários e permissões</Link> },
+      { key: '/organization', icon: <TeamOutlined />, label: <Link to="/organization">Estrutura organizacional</Link> },
+    ] },
     { type: 'group', label: 'AMBIENTES', children: [
       ...configuredEnvironments.map((environment) => ({
         key: `env-${environment.id}`, icon: <FolderOpenOutlined />, label: environment.name,
@@ -628,24 +628,6 @@ function AppLayout() {
     navigate('/login')
   }
 
-  const contaEmpresaChildren = [
-    ...(isAdmin
-      ? [{ key: '/users', label: <Link to="/users">Usuários</Link>, icon: <UserOutlined /> }]
-      : []),
-    ...(has('organization')
-      ? [{ key: '/organization', label: <Link to="/organization">Estrutura Organizacional</Link>, icon: <TeamOutlined /> }]
-      : []),
-    ...(has('notification_templates')
-      ? [{ key: '/notifications', label: <Link to="/notifications">Templates de Notificação</Link>, icon: <BellOutlined /> }]
-      : []),
-    ...(has('metadata')
-      ? [{ key: '/metadata', label: <Link to="/metadata">Metadados</Link>, icon: <DatabaseOutlined /> }]
-      : []),
-    { key: '/exibicao', label: <Link to="/exibicao">Exibição</Link>, icon: <EyeOutlined /> },
-    ...(isAdmin
-      ? [{ key: '/environment-settings', label: <Link to="/environment-settings">Configurações</Link>, icon: <SettingOutlined /> }]
-      : []),
-  ]
 
   const menuItems = useMemo(
     () => [
@@ -656,39 +638,7 @@ function AppLayout() {
       },
       {
         type: 'group' as const,
-        label: 'CONTA / EMPRESA',
-        children: contaEmpresaChildren,
-      },
-      {
-        type: 'group' as const,
-        label: (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 4 }}>
-            <span>PROCESSOS</span>
-            {!collapsed && (
-              <Tooltip title="Novo processo">
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<PlusOutlined />}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    navigate('/processes/new')
-                  }}
-                  style={{
-                    color: 'rgba(255,255,255,0.45)',
-                    width: 22,
-                    height: 22,
-                    minWidth: 22,
-                    padding: 0,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                />
-              </Tooltip>
-            )}
-          </div>
-        ),
+        label: 'PROCESSOS DISPONÍVEIS',
         children: [
           ...(loadingProcesses
             ? [{ key: '__loading__', label: <Spin size="small" />, icon: null, disabled: true }]
@@ -698,16 +648,13 @@ function AppLayout() {
               icon: <RightOutlined style={{ fontSize: 10 }} />,
             }))),
           { type: 'divider' as const },
-          ...(has('workflows')
-            ? [{ key: '/workflows', label: <Link to="/workflows">Workflows</Link>, icon: <ApartmentOutlined /> }]
-            : []),
           { key: '/documents', label: <Link to="/documents">Documentos</Link>, icon: <FolderOpenOutlined /> },
           { key: '/ld', label: <Link to="/ld">LD</Link>, icon: <UnorderedListOutlined /> },
           { key: '/tasks', label: <Link to="/tasks">Tarefas</Link>, icon: <CheckSquareOutlined /> },
         ],
       },
     ],
-    [collapsed, navigate, loadingProcesses, activeProcesses, contaEmpresaChildren, has],
+    [loadingProcesses, activeProcesses],
   )
 
   return (
@@ -784,20 +731,20 @@ function AppLayout() {
               <Route path="documents" element={<DocumentsPage />} />
               <Route path="documents/new" element={<DocumentNewPage />} />
               <Route path="documents/:id" element={<DocumentDetailPage />} />
-              <Route path="workflows" element={<WorkflowsPage />} />
-              <Route path="workflows/new" element={<WorkflowNewPage />} />
-              <Route path="workflows/:id" element={<WorkflowDetailPage />} />
-              <Route path="workflows/:id/studio" element={<WorkflowStudioPage />} />
+              <Route path="workflows" element={isAdmin ? <WorkflowsPage /> : <div>Acesso exclusivo de administradores.</div>} />
+              <Route path="workflows/new" element={isAdmin ? <WorkflowNewPage /> : <div>Acesso exclusivo de administradores.</div>} />
+              <Route path="workflows/:id" element={isAdmin ? <WorkflowDetailPage /> : <div>Acesso exclusivo de administradores.</div>} />
+              <Route path="workflows/:id/studio" element={isAdmin ? <WorkflowStudioPage /> : <div>Acesso exclusivo de administradores.</div>} />
               <Route path="ld" element={<LDPage />} />
               <Route path="tasks" element={<TasksPage />} />
-              <Route path="users" element={<UsersPage />} />
-              <Route path="metadata" element={<MetadataPage />} />
-              <Route path="exibicao" element={<ExibicaoPage />} />
-              <Route path="organization" element={<OrganizationPage />} />
-              <Route path="notifications" element={<NotificationTemplatesPage />} />
-              <Route path="environment-settings" element={<EnvironmentSettingsPage />} />
-              <Route path="processes/new" element={<EnvironmentSettingsPage />} />
-              <Route path="processes/:id" element={<ProcessSettingsPage />} />
+              <Route path="users" element={isAdmin ? <UsersPage /> : <div>Acesso exclusivo de administradores.</div>} />
+              <Route path="metadata" element={isAdmin ? <MetadataPage /> : <div>Acesso exclusivo de administradores.</div>} />
+              <Route path="exibicao" element={isAdmin ? <ExibicaoPage /> : <div>Acesso exclusivo de administradores.</div>} />
+              <Route path="organization" element={isAdmin ? <OrganizationPage /> : <div>Acesso exclusivo de administradores.</div>} />
+              <Route path="notifications" element={isAdmin ? <NotificationTemplatesPage /> : <div>Acesso exclusivo de administradores.</div>} />
+              <Route path="environment-settings" element={isAdmin ? <EnvironmentSettingsPage /> : <div>Acesso exclusivo de administradores.</div>} />
+              <Route path="processes/new" element={isAdmin ? <EnvironmentSettingsPage /> : <div>Acesso exclusivo de administradores.</div>} />
+              <Route path="processes/:id" element={isAdmin ? <ProcessSettingsPage /> : <div>Configuração do processo disponível apenas para administradores.</div>} />
             </Routes>
           </div>
         </Content>

@@ -1,7 +1,7 @@
 import { api } from './client'
 
 export type ConfigEnvironment = { id: string; name: string; code: string; description?: string; isActive: boolean }
-export type ConfigResourceKind = 'scripts' | 'visualization' | 'document-policy'
+export type ConfigResourceKind = 'scripts' | 'visualization' | 'document-policy' | 'process-settings'
 export type ConfigResource = { id: string; kind: ConfigResourceKind; name: string; code: string; content: Record<string, unknown>; isActive: boolean }
 export type ConfigInput = { name: string; code: string; description?: string; isActive: boolean }
 export type ResourceInput = { name: string; code: string; content: Record<string, unknown>; isActive: boolean }

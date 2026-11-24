@@ -9,9 +9,10 @@ import { getConfigEnvironments, createConfigEnvironment, updateConfigEnvironment
 import { MetadataPage } from './MetadataPage'
 import { NotificationTemplatesPage } from '../Notifications/NotificationTemplatesPage'
 import { ExibicaoPage } from '../Exibicao/ExibicaoPage'
+import { ProcessConfigurationTab } from './ProcessConfigurationTab'
 
 const { Title, Text } = Typography
-const sections = ['overview', 'metadata', 'notifications', 'visualization', 'integrations', 'audit'] as const
+const sections = ['overview', 'process-settings', 'metadata', 'notifications', 'visualization', 'integrations', 'audit'] as const
 const cleanError = (err: any) => Array.isArray(err?.response?.data?.message) ? err.response.data.message.join(', ') : err?.response?.data?.message || 'Não foi possível salvar.'
 
 function ResourceCatalog({ environmentId, kind }: { environmentId: string; kind: ConfigResourceKind }) {
@@ -133,7 +134,9 @@ export function ConfigurationWorkspace() {
           { key: 'general', label: 'Dados do ambiente', children: <><Row gutter={12} style={{ marginBottom: 18 }}><Col span={8}><Card size="small"><Text type="secondary">Ambiente</Text><p><b>{env.name}</b></p></Card></Col><Col span={8}><Card size="small"><Text type="secondary">Código</Text><p><b>{env.code}</b></p></Card></Col><Col span={8}><Card size="small"><Text type="secondary">Processos</Text><p><b>{linkedProcesses.length}</b></p></Card></Col></Row><Button onClick={editEnvironment} icon={<EditOutlined />}>Editar ambiente</Button></> },
           { key: 'documents', label: 'Revisões e documentos', children: <ResourceCatalog environmentId={env.id} kind="document-policy" /> },
         ]} /></> },
+        
         { key: 'metadata', label: 'Metadados', children: <MetadataPage /> },
+        { key: 'process-settings', label: 'Config. Processos', children: <ProcessConfigurationTab environmentId={env.id} processes={linkedProcesses} /> },
         { key: 'notifications', label: 'Notificações', children: <><Alert type="info" showIcon message="Os modelos existentes ainda são compartilhados pela conta; a seleção por ambiente e o disparo por atividade serão integrados em uma etapa posterior." style={{ marginBottom: 16 }} /><NotificationTemplatesPage /></> },
         { key: 'visualization', label: 'Visualização', children: <><ResourceCatalog environmentId={env.id} kind="visualization" /><div style={{ marginTop: 28 }}><Title level={5}>Visualizações existentes</Title><ExibicaoPage /></div></> },
         { key: 'integrations', label: 'Integrações e API', children: <ResourceCatalog environmentId={env.id} kind="scripts" /> },
