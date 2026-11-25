@@ -12,3 +12,6 @@ dist/
 *.bak-*
 *.v5-backup
 *.dgt-backup
+# NewFlow Fase 0 - arquivos locais e gerados
+.env.*
+!.env.example
